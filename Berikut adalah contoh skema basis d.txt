@@ -1,0 +1,331 @@
+Berikut adalah contoh skema basis data untuk entitas Mahasiswa. Kita akan menyusun entitas dasar yang berhubungan dengan data mahasiswa, seperti Mahasiswa, Jurusan, dan relasi antar entitas tersebut.
+
+Skema Database
+Tabel Mahasiswa
+sql
+Salin kode
+CREATE TABLE Mahasiswa (
+    nim VARCHAR(10) PRIMARY KEY,  -- NIM sebagai ID unik mahasiswa
+    nama VARCHAR(100) NOT NULL,
+    tanggal_lahir DATE,
+    jenis_kelamin VARCHAR(10),  -- 'Laki-laki' atau 'Perempuan'
+    alamat TEXT,
+    email VARCHAR(100),
+    no_telepon VARCHAR(15),
+    jurusan_id INT,  -- Foreign key ke tabel Jurusan
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (jurusan_id) REFERENCES Jurusan(id) ON DELETE SET NULL
+);
+Tabel Jurusan
+sql
+Salin kode
+CREATE TABLE Jurusan (
+    id SERIAL PRIMARY KEY,
+    nama_jurusan VARCHAR(100) NOT NULL,
+    fakultas VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+Tabel MataKuliah
+sql
+Salin kode
+CREATE TABLE MataKuliah (
+    id SERIAL PRIMARY KEY,
+    kode_mk VARCHAR(10) NOT NULL UNIQUE,  -- Kode mata kuliah
+    nama_mk VARCHAR(100) NOT NULL,
+    sks INT NOT NULL,  -- Satuan Kredit Semester
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+Tabel KRS (Kartu Rencana Studi)
+Tabel ini untuk mencatat mahasiswa yang mengambil mata kuliah (relasi many-to-many antara Mahasiswa dan MataKuliah).
+
+sql
+Salin kode
+CREATE TABLE KRS (
+    mahasiswa_nim VARCHAR(10),  -- Foreign key ke tabel Mahasiswa
+    mata_kuliah_id INT,         -- Foreign key ke tabel MataKuliah
+    semester INT NOT NULL,
+    tahun_ajaran VARCHAR(9) NOT NULL,  -- Contoh: '2024/2025'
+    nilai CHAR(2),              -- Nilai huruf: A, B, C, D, E
+    PRIMARY KEY (mahasiswa_nim, mata_kuliah_id, semester, tahun_ajaran),
+    FOREIGN KEY (mahasiswa_nim) REFERENCES Mahasiswa(nim) ON DELETE CASCADE,
+    FOREIGN KEY (mata_kuliah_id) REFERENCES MataKuliah(id) ON DELETE CASCADE
+);
+Penjelasan Relasi
+Mahasiswa: Tabel ini menyimpan informasi data mahasiswa seperti nim, nama, tanggal_lahir, jenis_kelamin, alamat, email, no_telepon, dan jurusan_id.
+Jurusan: Tabel ini menyimpan daftar jurusan yang tersedia, seperti id, nama_jurusan, dan fakultas.
+MataKuliah: Tabel ini menyimpan informasi mengenai mata kuliah seperti kode_mk, nama_mk, dan sks.
+KRS: Tabel ini menghubungkan mahasiswa dengan mata kuliah yang diambil, beserta detail seperti semester, tahun_ajaran, dan nilai yang diperoleh. Relasinya adalah many-to-many antara Mahasiswa dan MataKuliah.
+Contoh Data
+Mahasiswa: nim, nama, tanggal_lahir, jenis_kelamin, alamat, email, no_telepon, jurusan_id, created_at
+Jurusan: id, nama_jurusan, fakultas, created_at
+MataKuliah: id, kode_mk, nama_mk, sks, created_at
+KRS: mahasiswa_nim, mata_kuliah_id, semester, tahun_ajaran, nilai
+Dengan skema ini, kita bisa menyimpan informasi detail mahasiswa, jurusan, mata kuliah, dan pencatatan pengambilan mata kuliah (KRS) oleh mahasiswa.
+
+Spec API Mahasiswa
+GET /mahasiswa
+
+Deskripsi: Mendapatkan daftar semua mahasiswa.
+Respon Sukses (200):
+json
+Salin kode
+[
+  {
+    "nim": "1234567890",
+    "nama": "John Doe",
+    "tanggal_lahir": "1995-08-15",
+    "jenis_kelamin": "Laki-laki",
+    "alamat": "Jl. Merdeka No. 10",
+    "email": "john.doe@example.com",
+    "no_telepon": "081234567890",
+    "jurusan_id": 1,
+    "created_at": "2024-10-01T10:20:30Z"
+  }
+]
+GET /mahasiswa/{nim}
+
+Deskripsi: Mendapatkan detail mahasiswa berdasarkan NIM.
+Respon Sukses (200):
+json
+Salin kode
+{
+  "nim": "1234567890",
+  "nama": "John Doe",
+  "tanggal_lahir": "1995-08-15",
+  "jenis_kelamin": "Laki-laki",
+  "alamat": "Jl. Merdeka No. 10",
+  "email": "john.doe@example.com",
+  "no_telepon": "081234567890",
+  "jurusan_id": 1,
+  "created_at": "2024-10-01T10:20:30Z"
+}
+POST /mahasiswa
+
+Deskripsi: Menambahkan mahasiswa baru.
+Permintaan:
+json
+Salin kode
+{
+  "nim": "1234567890",
+  "nama": "John Doe",
+  "tanggal_lahir": "1995-08-15",
+  "jenis_kelamin": "Laki-laki",
+  "alamat": "Jl. Merdeka No. 10",
+  "email": "john.doe@example.com",
+  "no_telepon": "081234567890",
+  "jurusan_id": 1
+}
+Respon Sukses (201):
+json
+Salin kode
+{
+  "message": "Mahasiswa berhasil ditambahkan."
+}
+PUT /mahasiswa/{nim}
+
+Deskripsi: Memperbarui data mahasiswa berdasarkan NIM.
+Permintaan:
+json
+Salin kode
+{
+  "nama": "John Doe Updated",
+  "tanggal_lahir": "1995-08-15",
+  "jenis_kelamin": "Laki-laki",
+  "alamat": "Jl. Merdeka No. 12",
+  "email": "john.doe.updated@example.com",
+  "no_telepon": "081234567891",
+  "jurusan_id": 2
+}
+Respon Sukses (200):
+json
+Salin kode
+{
+  "message": "Data mahasiswa berhasil diperbarui."
+}
+DELETE /mahasiswa/{nim}
+
+Deskripsi: Menghapus mahasiswa berdasarkan NIM.
+Respon Sukses (200):
+json
+Salin kode
+{
+  "message": "Mahasiswa berhasil dihapus."
+}
+Spec API Jurusan
+GET /jurusan
+
+Deskripsi: Mendapatkan daftar semua jurusan.
+Respon Sukses (200):
+json
+Salin kode
+[
+  {
+    "id": 1,
+    "nama_jurusan": "Teknik Informatika",
+    "fakultas": "Fakultas Teknik",
+    "created_at": "2024-10-01T10:20:30Z"
+  }
+]
+POST /jurusan
+
+Deskripsi: Menambahkan jurusan baru.
+Permintaan:
+json
+Salin kode
+{
+  "nama_jurusan": "Sistem Informasi",
+  "fakultas": "Fakultas Teknologi Informasi"
+}
+Respon Sukses (201):
+json
+Salin kode
+{
+  "message": "Jurusan berhasil ditambahkan."
+}
+PUT /jurusan/{id}
+
+Deskripsi: Memperbarui data jurusan berdasarkan ID.
+Permintaan:
+json
+Salin kode
+{
+  "nama_jurusan": "Sistem Informasi Updated",
+  "fakultas": "Fakultas Teknologi Informasi"
+}
+Respon Sukses (200):
+json
+Salin kode
+{
+  "message": "Data jurusan berhasil diperbarui."
+}
+DELETE /jurusan/{id}
+
+Deskripsi: Menghapus jurusan berdasarkan ID.
+Respon Sukses (200):
+json
+Salin kode
+{
+  "message": "Jurusan berhasil dihapus."
+}
+Spec API Mata Kuliah
+GET /mata-kuliah
+
+Deskripsi: Mendapatkan daftar semua mata kuliah.
+Respon Sukses (200):
+json
+Salin kode
+[
+  {
+    "id": 1,
+    "kode_mk": "MK001",
+    "nama_mk": "Pemrograman Dasar",
+    "sks": 3,
+    "created_at": "2024-10-01T10:20:30Z"
+  }
+]
+POST /mata-kuliah
+
+Deskripsi: Menambahkan mata kuliah baru.
+Permintaan:
+json
+Salin kode
+{
+  "kode_mk": "MK002",
+  "nama_mk": "Struktur Data",
+  "sks": 4
+}
+Respon Sukses (201):
+json
+Salin kode
+{
+  "message": "Mata kuliah berhasil ditambahkan."
+}
+PUT /mata-kuliah/{id}
+
+Deskripsi: Memperbarui data mata kuliah berdasarkan ID.
+Permintaan:
+json
+Salin kode
+{
+  "kode_mk": "MK002",
+  "nama_mk": "Struktur Data Lanjut",
+  "sks": 4
+}
+Respon Sukses (200):
+json
+Salin kode
+{
+  "message": "Data mata kuliah berhasil diperbarui."
+}
+DELETE /mata-kuliah/{id}
+
+Deskripsi: Menghapus mata kuliah berdasarkan ID.
+Respon Sukses (200):
+json
+Salin kode
+{
+  "message": "Mata kuliah berhasil dihapus."
+}
+Spec API KRS (Kartu Rencana Studi)
+GET /krs/{nim}
+
+Deskripsi: Mendapatkan KRS mahasiswa berdasarkan NIM.
+Respon Sukses (200):
+json
+Salin kode
+[
+  {
+    "nim": "1234567890",
+    "mata_kuliah_id": 1,
+    "semester": 1,
+    "tahun_ajaran": "2024/2025",
+    "nilai": "A"
+  }
+]
+POST /krs
+
+Deskripsi: Menambahkan mata kuliah ke dalam KRS mahasiswa.
+Permintaan:
+json
+Salin kode
+{
+  "nim": "1234567890",
+  "mata_kuliah_id": 1,
+  "semester": 1,
+  "tahun_ajaran": "2024/2025"
+}
+Respon Sukses (201):
+json
+Salin kode
+{
+  "message": "KRS berhasil ditambahkan."
+}
+PUT /krs/{nim}/{mata_kuliah_id}
+
+Deskripsi: Memperbarui nilai mata kuliah dalam KRS mahasiswa.
+Permintaan:
+json
+Salin kode
+{
+  "nilai": "B"
+}
+Respon Sukses (200):
+json
+Salin kode
+{
+  "message": "Nilai KRS berhasil diperbarui."
+}
+DELETE /krs/{nim}/{mata_kuliah_id}
+
+Deskripsi: Menghapus mata kuliah dari KRS mahasiswa.
+Respon Sukses (200):
+json
+Salin kode
+{
+  "message": "Mata kuliah di KRS berhasil dihapus."
+}
+Penjelasan:
+Mahasiswa: Operasi CRUD untuk menambahkan, memperbarui, menghapus, dan mendapatkan daftar mahasiswa.
+Jurusan: Operasi CRUD untuk mengelola jurusan.
+Mata Kuliah: Operasi CRUD untuk mengelola mata kuliah.
+KRS: Menambahkan, memperbarui, dan menghapus mata kuliah yang diambil oleh mahasiswa, serta memperbarui
