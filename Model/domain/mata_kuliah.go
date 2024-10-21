@@ -8,5 +8,6 @@ type MataKuliah struct {
 	NamaMataKuliah string
 	Sks            int
 	CreatedAt      time.Time
-	UpdatedAt      time.Time
+	// agar nilai bisa di set Null , maka pakai pointer
+	UpdatedAt *time.Time
 }
